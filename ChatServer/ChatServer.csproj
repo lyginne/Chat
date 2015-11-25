@@ -46,10 +46,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ServerUser.cs" />
-    <Compile Include="DataBasemanager.cs" />
-    <Compile Include="ClientRequestsListener.cs" />
-    <Compile Include="Server.cs" />
+    <Compile Include="ChatClient.cs" />
+    <Compile Include="NetworkExchange\Broadcaster.cs" />
+    <Compile Include="DataBase\DataBasemanager.cs" />
+    <Compile Include="NetworkExchange\ClientRequestsListener.cs" />
+    <Compile Include="NetworkExchange\Server.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
