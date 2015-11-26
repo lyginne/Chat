@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChatClient.cs" />
+    <Compile Include="LimitedQueue.cs" />
     <Compile Include="NetworkExchange\Broadcaster.cs" />
     <Compile Include="DataBase\DataBasemanager.cs" />
     <Compile Include="NetworkExchange\ClientRequestsListener.cs" />

@@ -18,5 +18,8 @@ namespace ChatModel {
 
             return new ServerUser(username, hashedPassword);
         }
+        public static string GetMessagesFromBytes(byte[] buffer, int length) {
+            return EncodyngAndCryptoInformation.encoding.GetString(buffer, 1, length - 1 );
+        }
     }
 }

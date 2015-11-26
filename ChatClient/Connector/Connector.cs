@@ -172,11 +172,11 @@ namespace ChatClient.Connector {
                     string message = Encoding.UTF8.GetString(inputbuffer, 1, count - 1);
                     NotifyObserversMessageRecieved(message);
                 }
-                if(inputbuffer[0] == (byte)ChatModel.Rrules.UsersList) {
+                else if(inputbuffer[0] == (byte)ChatModel.Rrules.UsersList) {
                     string message = Encoding.UTF8.GetString(inputbuffer, 1, count - 1);
                     NotifyObserversUsersListRecieved(message);
                 }
-                if (inputbuffer[0] == (byte)ChatModel.Rrules.ErrorOcured) {
+                else if (inputbuffer[0] == (byte)ChatModel.Rrules.ErrorOcured) {
                     string message = Encoding.UTF8.GetString(inputbuffer, 1, count - 1);
                     NotifyObserversErrorOcured(message);
                     Disconnect();

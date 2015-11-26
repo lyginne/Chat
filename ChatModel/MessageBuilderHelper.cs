@@ -24,8 +24,10 @@ namespace ChatModel {
             Encoding.UTF8.GetBytes(username).CopyTo(sendBuffer, 32);
             return sendBuffer;
         }
-        public static byte[] GetBytesToMessageSendRequest(string username, string password) {
-            byte[] sendBuffer = new byte[1];
+        public static byte[] GetBytesToMessageSendRequest(string message) {
+            byte[] sendBuffer = new byte[message.Length+1];
+            sendBuffer[0] = (byte) ChatModel.Rrules.Message;
+            EncodyngAndCryptoInformation.encoding.GetBytes(message).CopyTo(sendBuffer,1);
             return sendBuffer;
         }
     }

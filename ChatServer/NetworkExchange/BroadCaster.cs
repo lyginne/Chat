@@ -10,6 +10,7 @@ namespace ChatServer.NetworkExchange {
     class Broadcaster {
         private static Broadcaster _broadcaster;
         private static List<ChatClient> usersOnline;
+        private static LimitedQueue<String> hundreedMessages; 
 
         public static void Initialize() {
             _broadcaster = new Broadcaster();
@@ -21,6 +22,7 @@ namespace ChatServer.NetworkExchange {
 
         private Broadcaster() {
             usersOnline = new List<ChatClient>();
+            hundreedMessages = new LimitedQueue<string>(100);
         }
 
         public void AddOnlineUser(ChatClient chatClient) {
@@ -38,32 +40,26 @@ namespace ChatServer.NetworkExchange {
 
         }
 
-        ~Broadcaster() {
-            ;
-            ;
-            ;
-        }
         private void BroadcastNewUsersList() {
             
         }
 
-        public void BroadcastMessageFrom(User sender, string message) {
-            
-        }
         public void BroadcastMessageFrom(Socket Sender, string message) {
             lock (this) {
+                String sendingString="";
                 var firstOrDefault = usersOnline.FirstOrDefault(x => x.Socket.Equals(Sender));
                 if (firstOrDefault != null) {
-                    String SendingString = firstOrDefault.User.Username + message;
+                    sendingString = $"{firstOrDefault.User.Username}: {message}";
+                    hundreedMessages.Enqueue(sendingString);
                 }
                 else {
                     throw new Exception("Юзер удален, почему он вообще что-то шлет?");
                 }
+                foreach (var user in usersOnline) {
+                    byte[] outputBuffer = MessageBuilderHelper.GetBytesToMessageSendRequest(sendingString);
+                    user.Socket.Send(outputBuffer, outputBuffer.Length,SocketFlags.None);
+                }
             }
         }
-        public void BroadcastMessageFrom(ChatClient Sender, string message) {
-
-        }
-
     }
 }
