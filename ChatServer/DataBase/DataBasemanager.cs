@@ -18,7 +18,7 @@ namespace ChatServer.DataBase {
             lock (dataBaseConnection) {
                 dataBaseConnection.Open();
                 string sql = $"INSERT INTO USERS ( USERNAME, PASSWORDHASHBASE64 ) " +
-                                $"VALUES ( '{user.Username}' , '{Convert.ToBase64String(user.HashedPassword)}' ) ;";
+                                $"VALUES ( '{user.Username}' , '{user.HashedPasswordBase64}' ) ;";
                 SQLiteCommand command = new SQLiteCommand(sql, dataBaseConnection);
                 command.ExecuteNonQuery();
                 dataBaseConnection.Close();
@@ -34,7 +34,7 @@ namespace ChatServer.DataBase {
                 string sql = $"SELECT COUNT(*) " +
                              $"FROM USERS " +
                              $"WHERE USERNAME = '{user.Username}' " +
-                             $"AND PASSWORDHASHBASE64 = '{Convert.ToBase64String(user.HashedPassword)}' ;";
+                             $"AND PASSWORDHASHBASE64 = '{user.HashedPasswordBase64}' ;";
                 SQLiteCommand command = new SQLiteCommand(sql, dataBaseConnection);
                 userMatch = Convert.ToInt32(command.ExecuteScalar());
                 dataBaseConnection.Close();
@@ -46,7 +46,7 @@ namespace ChatServer.DataBase {
                 //Строго говоря, больше одного совпадения - кривая база, но ладно
                 return false;
             }
-            return true;
+            return false;
         }
 
         public bool CheckUserExistance(ServerUser user) {
