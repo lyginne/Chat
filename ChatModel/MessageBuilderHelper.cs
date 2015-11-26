@@ -30,5 +30,12 @@ namespace ChatModel {
             EncodyngAndCryptoInformation.encoding.GetBytes(message).CopyTo(sendBuffer,1);
             return sendBuffer;
         }
+        public static byte[] GetBytesToUsersListSendRequest(string userslist) {
+            byte[] sendBuffer = new byte[userslist.Length + 1];
+            sendBuffer[0] = (byte)ChatModel.Rrules.UsersList;
+            EncodyngAndCryptoInformation.encoding.GetBytes(userslist).CopyTo(sendBuffer, 1);
+            return sendBuffer;
+        }
+
     }
 }
