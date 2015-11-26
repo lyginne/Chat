@@ -10,6 +10,7 @@ namespace Chat {
         void OnUserPasswordOperationSuceed();
         void OnMessageRecieved(string messsage);
         void OnErrorOcurs(string description);
-        void OnUsersListRecieved(string usersList);
+        void OnUserJoined(string username);
+        void OnUserQuit(string username);
     }
 }

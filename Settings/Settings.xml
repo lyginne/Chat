@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<settings>
+  <IpAddress>127.0.0.1</IpAddress>
+  <Port>12345</Port>
+</settings>

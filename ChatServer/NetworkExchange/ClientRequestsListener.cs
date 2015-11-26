@@ -1,28 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
-using  ChatModel;
-using ChatServer.NetworkExchange;
+using ChatModel;
+using ChatServer.DataBase;
+using ChatServer.NetworkExchange.Broadcaster;
 
-namespace ChatServer {
-    class ClientRequestsListener {
-        private Socket socket;
-        private NetworkStream networkStream;
-        private StreamWriter writer;
-        private StreamReader reader;
+namespace ChatServer  {
+    class ClientRequestsListener : IBroadcasterClient  {
+        private Socket _socket;
+        private readonly NetworkStream _networkStream;
+        private readonly StreamWriter _writer;
+        private readonly StreamReader _reader;
+        private ServerUser _serverUser;
         string userExist="1";
         string IncorrectLoginOrPassword= "2";
 
         public ClientRequestsListener(Socket socket) {
-            networkStream = new NetworkStream(socket);
-            reader = new StreamReader(networkStream,Encoding.UTF8);
-            writer = new StreamWriter(networkStream, Encoding.UTF8);
-            string requestString = reader.ReadLine();
-            ChatModel.Rrules request;
+            _socket = socket;
+            _networkStream = new NetworkStream(socket);
+            _reader = new StreamReader(_networkStream,Encoding.UTF8);
+            _writer = new StreamWriter(_networkStream, Encoding.UTF8);
+            string requestString = _reader.ReadLine();
             if (requestString[0] == '0') {
                 OnAutorizeRequest(requestString);
             }
@@ -31,84 +30,120 @@ namespace ChatServer {
             }
             else {
                 Console.WriteLine("Неавторизованный запрос");
-                Disconnect(socket);
+                Dispose();
             }
         }
 
         private void OnAutorizeRequest(string message) {
-
-            ServerUser serverUser = MessageAnalyserHelper.GetServerUserFromString(message);
-            if (serverUser.Username.Length < 3) {
+            _serverUser = MessageAnalyserHelper.GetServerUserFromString(message);
+            if (_serverUser.Username.Length < 3) {
                 SendServerResponse("1");
-#warning disconnect
-                //Disconnect(socket);
+                Dispose();
                 return;
             }
-            if (DataBase.DataBaseManager.GetInstance().VerifyUser(serverUser)) {
-                Authorize(new ChatClient(serverUser, socket));
+            if (DataBaseManager.GetInstance().VerifyUser(_serverUser)) {
+                Authorize();
             }
             else {
                 SendServerResponse("1");
-#warning disconnect
-                //Disconnect(socket);
+                Dispose();
             }
 
         }
 
         private void OnRegisterRequest(string message) {
-            ServerUser serverUser = MessageAnalyserHelper.GetServerUserFromString(message);
-            if (serverUser.Username.Length < 3) {
+           _serverUser = MessageAnalyserHelper.GetServerUserFromString(message);
+            if (_serverUser.Username.Length < 3) {
                 SendServerResponse("1");
-#warning disconnect
-                //Disconnect(socket);
+                Dispose();
                 return;
             }
-            if (!DataBase.DataBaseManager.GetInstance().CheckUserExistance(serverUser)) {
-                DataBase.DataBaseManager.GetInstance().AddUserToDataBase(serverUser);
-                Authorize(new ChatClient(serverUser, socket));
+            if (!DataBaseManager.GetInstance().CheckUserExistance(_serverUser)) {
+                DataBaseManager.GetInstance().AddUserToDataBase(_serverUser);
+                Authorize();
             }
             else {
                 SendServerResponse("2");
-#warning disconnect
-                //Disconnect(socket);
+                Dispose();
             }
         }
 
-        private void Authorize(ChatClient chatClient) {
-            SendServerResponse("0");
-            SendHundreedOfMessages(chatClient);
-            //Broadcaster.GetInstance().AddOnlineUser(chatClient);
-            waitForMessages(chatClient);
+        private void Authorize() {
+            try {
+                SendServerResponse("0");
+            }
+            catch (Exception) {
+                throw;
+            }
+            Broadcaster.GetInstance().AddBroadcasterClient(this);
+            WaitForMessages();
         }
 
-        private void waitForMessages(ChatClient chatClient) {
-            Socket socket = chatClient.Socket;
-            byte[] socketbuffer = new byte[1024];
-//            while (true) {
-//            string requestString = reader.ReadLine();
-//
-//                //Broadcaster.GetInstance().BroadcastMessageFrom(socket, MessageAnalyserHelper.GetMessagesFromBytes(socketbuffer,bytesRecieved));
-//            }
-
+        private void WaitForMessages() {
+            while (true) {
+                string requestString=null;
+                try {
+                    requestString = _reader.ReadLine();
+                }
+                catch (Exception) {
+                    Broadcaster.GetInstance().RemoveBroadcasterClient(this);
+                }
+                
+                if (requestString == null) {
+                    Broadcaster.GetInstance().RemoveBroadcasterClient(this);
+                    Console.WriteLine("Клиент ушел");
+                    Dispose();
+                    return;
+                }
+                Broadcaster.GetInstance().BroadcastMessage($"{_serverUser.Username}: {requestString.Substring(2)}");
+            }
         }
 
         private void SendServerResponse(string response) {
-            writer.WriteLine(response);
-            writer.Flush();
+            _writer.WriteLine(response);
+            _writer.Flush();
         }
 
-        private void SendHundreedOfMessages(ChatClient chatClient) {
-            //Broadcaster.GetInstance().SendHeundreedMessagesToUser(chatClient);
+        #region IBroadcasterClient
+
+        public string GetUsername() {
+            return _serverUser.Username;
         }
 
-        private void Disconnect(Socket socket) {
-            if (socket == null) {
+
+
+        public void OnMessageRecieved(string message) {
+            _writer.WriteLine("3|"+message);
+            _writer.Flush();
+        }
+
+        public void OnUserCame(string newUserName) {
+            _writer.WriteLine("4|"+newUserName);
+            _writer.Flush();
+        }
+
+        public void OnUserQuit(string username) {
+            _writer.WriteLine("5|"+username);
+            _writer.Flush();
+        }
+
+        #endregion
+
+        public void Dispose() {
+            Disconnect();
+        }
+
+        private void Disconnect() {
+            _reader?.Close();
+            _writer?.Close();
+            _networkStream?.Close();
+            if (_socket == null) {
                 return;
             }
-            if (socket.Connected) {
-                socket.Shutdown(SocketShutdown.Both);
+            if (_socket.Connected) {
+                _socket.Shutdown(SocketShutdown.Both);
             }
-            socket.Close();
+            _socket.Close();
         }
     }
 }

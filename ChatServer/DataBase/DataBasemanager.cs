@@ -4,7 +4,7 @@ using System.IO;
 using ChatModel;
 
 namespace ChatServer.DataBase {
-    //Синглтон для общения с базой
+    //Синглтон для общения с базой. По-хорошему ему надо свой поток, очередь на запись и расписание, но ладно
     class DataBaseManager {
         private static DataBaseManager _dataBaseManager;
         private const string DataBasePath = "my.bd";

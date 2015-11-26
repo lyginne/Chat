@@ -104,13 +104,28 @@ namespace Chat
 
         }
 
-        public void OnUsersListRecieved(string usersList) {
+        public void OnUserJoined(string username) {
             if (!Dispatcher.CheckAccess()) {
-                Dispatcher.Invoke(new StringMethodInboker(OnUsersListRecieved), usersList);
+                Dispatcher.Invoke(new StringMethodInboker(OnUserJoined), username);
                 return;
             }
-            TbUsersOnline.Text = "";
-            TbUsersOnline.AppendText(usersList);
+            TbUsersOnline.AppendText($"{username}\r\n");
+        }
+
+        public void OnUserQuit(string username) {
+            if (!Dispatcher.CheckAccess()) {
+                Dispatcher.Invoke(new StringMethodInboker(OnUserQuit), username);
+                return;
+            }
+
+            username += "\r\n";
+            int index = TbUsersOnline.Text.IndexOf(username);
+            if (index < 0) {
+                return;
+            }
+            else {
+                TbUsersOnline.Text = TbUsersOnline.Text.Remove(index, username.Length);
+            }
         }
 
         private void SetUnauthorizedState() {

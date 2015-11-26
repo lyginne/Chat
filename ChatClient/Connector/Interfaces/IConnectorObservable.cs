@@ -6,7 +6,8 @@ namespace ChatClient.Connector.Interfaces {
         void RemoveObserver(IConnectorObserver observer);
         void NotifyObserversUserPasswordOperationSucced();
         void NotifyObserversMessageRecieved(string s);
-        void NotifyObserversUsersListRecieved(string usersList);
+        void NotifyObserversNewUserJoined(string newUser);
         void NotifyObserversErrorOcured(string s);
+        void NotifyObserversUserQuit(string user);
     }
 }
