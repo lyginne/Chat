@@ -57,16 +57,12 @@ namespace Chat
 
         #region IConnectorObserver
 
-        public void OnAutorizationSucceed() {
+        public void OnUserPasswordOperationSuceed() {
             if (!Dispatcher.CheckAccess()) {
-                Dispatcher.Invoke(new NoArgumentsMethodInvoker(OnAutorizationSucceed));
+                Dispatcher.Invoke(new NoArgumentsMethodInvoker(OnUserPasswordOperationSuceed));
                 return;
             }
             SetAuthorizedState();
-        }
-
-        public void OnRegistrationSucced() {
-            OnAutorizationSucceed();
         }
 
         public void OnMessageRecieved(string messsage) {
@@ -74,7 +70,7 @@ namespace Chat
                 Dispatcher.Invoke(new StringMethodInboker(OnMessageRecieved), messsage);
                 return;
             }
-            TbChatMessages.AppendText(messsage+"\r\n");
+            TbChatMessages.AppendText(messsage);
             TbChatMessages.ScrollToEnd();
         }
 

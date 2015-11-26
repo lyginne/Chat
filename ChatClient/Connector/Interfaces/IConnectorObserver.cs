@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 
 namespace Chat {
     interface IConnectorObserver {
-        void OnAutorizationSucceed();
-        void OnRegistrationSucced();
+        void OnUserPasswordOperationSuceed();
         void OnMessageRecieved(string messsage);
         void OnErrorOcurs(string description);
         void OnUsersListRecieved(string usersList);
