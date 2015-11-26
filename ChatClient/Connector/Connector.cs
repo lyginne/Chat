@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using Chat;
 using ChatClient.Connector.Interfaces;
+using ChatModel;
 
 namespace ChatClient.Connector {
     //Синглтон для общения с сервером
-    class Connector : IConnectorObservable {
+    class Connector : IConnectorObservable, IDisposable {
 
         private static Connector _connector;
         private Socket _socket;
@@ -50,86 +52,89 @@ namespace ChatClient.Connector {
                 }
             }
         }
-
-
-        ~Connector() {
+        public void Dispose() {
+            _connector = null;
             Disconnect();
         }
         #endregion
 
+        public void Connect() {
+            _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            _socket.Connect(XMLsettings.IpAddress, XMLsettings.Port);
+        }
+
         #region ButtonRegistration and Autorisation
         public void Authorize(string username, string password) {
-
             try {
-                _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                _socket.Connect(IPAddress.Parse("127.0.0.1"), 12345);
+                Connect();
             }
             catch {
                 NotifyObserversErrorOcured("Невозможно подключиться к серверу");
                 return;
             }
+            NetworkStream networkStream = new NetworkStream(_socket);
+            StreamReader reader = new StreamReader(networkStream, Encoding.UTF8);
+            StreamWriter writer = new StreamWriter(networkStream, Encoding.UTF8);
+            writer.WriteLine(String.Format("0|{0}, {1}", Convert.ToBase64String(EncodyngAndCryptoInformation.hashingAlgorytm.ComputeHash(Encoding.UTF8.GetBytes(password))), username));
+            writer.Flush();
+            string response = reader.ReadLine();
+            AnalyzeUserPasswordRequestResult(response[0]);
+            //            string resut = reader.ReadLine();
+            //            if (resut.Equals("0|")) {
+            //                AnalyzeUserPasswordRequestResult((byte)ChatModel.Rrules.Ok);
+            //            }
 
-            byte[] sendBuffer = ChatModel.MessageBuilderHelper.GetBytesToAutorisationRequest(username, password);
-            byte[] inputbuffer = new byte[1];
-              
-            try {
-                _socket.Send(sendBuffer, sendBuffer.Length, SocketFlags.None);
-                _socket.Receive(inputbuffer, 0, 1, SocketFlags.None);
-            }
-            catch {
-                NotifyObserversErrorOcured("Ошибка соединения, авторизация невозможна");
-                Disconnect();
-                return;
-            }
-            
-            
-            if (inputbuffer[0] == (byte) ChatModel.Rrules.Ok) {
-                NotifyObserversAuthorized();
-                StartSession();
 
-            }
-            else if (inputbuffer[0] == (byte) ChatModel.Rrules.IncorrectLoginOrPassword) {
-                NotifyObserversErrorOcured("Неверный логин или пароль");
-                Disconnect();
-            }
-            else {
-                NotifyObserversErrorOcured("Сервер сообщил об ошибке, о которой не должен был сообщать");
-                Disconnect();
-            }
+            //            byte[] sendBuffer = ChatModel.MessageBuilderHelper.GetBytesToAutorisationRequest(username, password);
+            //            byte[] inputbuffer = new byte[1];
+            //              
+            //            try {
+            //                //_socket.Send(sendBuffer, sendBuffer.Length, SocketFlags.None);
+            //                //_socket.Receive(inputbuffer, 0, 1, SocketFlags.None);
+            //            }
+            //            catch {
+            //                NotifyObserversErrorOcured("Ошибка соединения, авторизация невозможна");
+            //                Disconnect();
+            //                return;
+            //            }
+
+
+            //else {
+
+            //AnalyzeUserPasswordRequestResult(inputbuffer[0]);
+            //}
 
         }
 
         public void Register(string username, string password) {
             try {
-                _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                _socket.Connect(IPAddress.Parse("127.0.0.1"), 12345);
+                Connect();
             }
             catch {
                 NotifyObserversErrorOcured("Невозможно подключиться к серверу");
                 return;
             }
+            NetworkStream networkStream = new NetworkStream(_socket);
+            StreamReader reader = new StreamReader(networkStream, Encoding.UTF8);
+            StreamWriter writer = new StreamWriter(networkStream, Encoding.UTF8);
+            writer.WriteLine(String.Format("1|{0}, {1}", Convert.ToBase64String(EncodyngAndCryptoInformation.hashingAlgorytm.ComputeHash(Encoding.UTF8.GetBytes(password))), username));
+            writer.Flush();
+            string response = reader.ReadLine();
+            AnalyzeUserPasswordRequestResult(response[0]);
 
-            byte[] sendbuffer = ChatModel.MessageBuilderHelper.GetBytesToRegistrationRequest(username, password);
-            byte[] inputbuffer = new byte[1];
+        }
+        #endregion
 
-            try {
-                _socket.Send(sendbuffer, sendbuffer.Length, SocketFlags.None);
-                _socket.Receive(inputbuffer, 0, 1, SocketFlags.None);
+        private void AnalyzeUserPasswordRequestResult(char result) {
+            if (result == '0') {
+                NotifyObserversUserPasswordOperationSucced();
+                StartSession();
             }
-            catch (Exception e) {
-                NotifyObserversErrorOcured("Ошибка подключения, невозможно зарегистрироваться");
-                Disconnect();
-                return;
-            }
-            if (inputbuffer[0] == (byte)ChatModel.Rrules.UserExists) {
+            else if (result == '2') {
                 NotifyObserversErrorOcured("Юзер существует");
                 Disconnect();
             }
-            else if (inputbuffer[0] == (byte)ChatModel.Rrules.Ok) {
-                NotifyObserversRegistered();
-                StartSession();
-            }
-            else if (inputbuffer[0] == (byte)ChatModel.Rrules.IncorrectLoginOrPassword) {
+            else if (result == '1') {
                 NotifyObserversErrorOcured("Некорректное имя пользователя или пароль");
                 Disconnect();
             }
@@ -137,9 +142,26 @@ namespace ChatClient.Connector {
                 NotifyObserversErrorOcured("Неожиданная ошибка");
                 Disconnect();
             }
-
         }
-        #endregion
+
+        private void AnalyzeUserPasswordRequestResult(byte result) {
+            if (result == (byte)ChatModel.Rrules.Ok) {
+                NotifyObserversUserPasswordOperationSucced();
+                StartSession();
+            }
+            else if (result == (byte)ChatModel.Rrules.UserExists) {
+                NotifyObserversErrorOcured("Юзер существует");
+                Disconnect();
+            }
+            else if (result == (byte)ChatModel.Rrules.IncorrectLoginOrPassword) {
+                NotifyObserversErrorOcured("Некорректное имя пользователя или пароль");
+                Disconnect();
+            }
+            else {
+                NotifyObserversErrorOcured("Неожиданная ошибка");
+                Disconnect();
+            }
+        }
 
         #region Session
         private void StartSession() {
@@ -214,15 +236,9 @@ namespace ChatClient.Connector {
             Observers.Remove(observer);
         }
 
-        public void NotifyObserversRegistered() {
+        public void NotifyObserversUserPasswordOperationSucced() {
             foreach (var observer in Observers) {
-                observer.OnRegistrationSucced();
-            }
-        }
-
-        public void NotifyObserversAuthorized() {
-            foreach (var observer in Observers) {
-                observer.OnAutorizationSucceed();
+                observer.OnUserPasswordOperationSuceed();
             }
         }
 
@@ -246,5 +262,6 @@ namespace ChatClient.Connector {
         }
         #endregion
 
+        
     }
 }
