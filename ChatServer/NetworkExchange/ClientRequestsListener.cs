@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -9,59 +10,57 @@ using ChatServer.NetworkExchange;
 
 namespace ChatServer {
     class ClientRequestsListener {
+        private Socket socket;
+        private NetworkStream networkStream;
+        private StreamWriter writer;
+        private StreamReader reader;
+        string userExist="1";
+        string IncorrectLoginOrPassword= "2";
 
         public ClientRequestsListener(Socket socket) {
-            byte[] socketbuffer = new byte[1024];
-            int bytesRecieved=0;
-            try {
-                bytesRecieved = socket.Receive(socketbuffer, 0, socketbuffer.Length, SocketFlags.None);
-                if (bytesRecieved == 0) {
-                    Console.WriteLine("Клиент шлет ноль байт, видимо, передумал");
-                    Disconnect(socket);
-                    return;
-                }
+            networkStream = new NetworkStream(socket);
+            reader = new StreamReader(networkStream,Encoding.UTF8);
+            writer = new StreamWriter(networkStream, Encoding.UTF8);
+            string requestString = reader.ReadLine();
+            ChatModel.Rrules request;
+            if (requestString[0] == '0') {
+                OnAutorizeRequest(requestString);
             }
-            catch (Exception e) {
-                Console.WriteLine("Клиент ничего не передает, видимо, упал");
-                Disconnect(socket);
-                return;
-            }
-
-            if (socketbuffer[0] == (byte)ChatModel.Rrules.Autorization) {
-                OnAutorizeRequest(socketbuffer,bytesRecieved,socket);
-            }
-            else if (socketbuffer[0] == (byte) ChatModel.Rrules.Registration) {
-                OnRegisterRequest(socketbuffer, bytesRecieved,socket);
+            else if (requestString[0] == '1') {
+                OnRegisterRequest(requestString);
             }
             else {
                 Console.WriteLine("Неавторизованный запрос");
                 Disconnect(socket);
             }
-
         }
 
-        private void OnAutorizeRequest(byte[] socketbuffer, int bytesRecieved, Socket socket) {
-            ServerUser serverUser = MessageAnalyserHelper.GetServerUserFromBytes(socketbuffer, bytesRecieved);
+        private void OnAutorizeRequest(string message) {
+
+            ServerUser serverUser = MessageAnalyserHelper.GetServerUserFromString(message);
             if (serverUser.Username.Length < 3) {
-                sendServerResponse(socket, ChatModel.Rrules.IncorrectLoginOrPassword);
-                Disconnect(socket);
+                SendServerResponse("1");
+#warning disconnect
+                //Disconnect(socket);
                 return;
             }
             if (DataBase.DataBaseManager.GetInstance().VerifyUser(serverUser)) {
                 Authorize(new ChatClient(serverUser, socket));
             }
             else {
-                sendServerResponse(socket, ChatModel.Rrules.IncorrectLoginOrPassword);
-                Disconnect(socket);
+                SendServerResponse("1");
+#warning disconnect
+                //Disconnect(socket);
             }
 
         }
 
-        private void OnRegisterRequest(byte[] socketbuffer, int bytesRecieved, Socket socket) {
-            ServerUser serverUser = MessageAnalyserHelper.GetServerUserFromBytes(socketbuffer, bytesRecieved);
+        private void OnRegisterRequest(string message) {
+            ServerUser serverUser = MessageAnalyserHelper.GetServerUserFromString(message);
             if (serverUser.Username.Length < 3) {
-                sendServerResponse(socket, ChatModel.Rrules.IncorrectLoginOrPassword);
-                Disconnect(socket);
+                SendServerResponse("1");
+#warning disconnect
+                //Disconnect(socket);
                 return;
             }
             if (!DataBase.DataBaseManager.GetInstance().CheckUserExistance(serverUser)) {
@@ -69,40 +68,37 @@ namespace ChatServer {
                 Authorize(new ChatClient(serverUser, socket));
             }
             else {
-                sendServerResponse(socket, ChatModel.Rrules.UserExists);
-                Disconnect(socket);
+                SendServerResponse("2");
+#warning disconnect
+                //Disconnect(socket);
             }
         }
 
         private void Authorize(ChatClient chatClient) {
-            sendServerResponse(chatClient.Socket, ChatModel.Rrules.Ok);
+            SendServerResponse("0");
             SendHundreedOfMessages(chatClient);
-            Broadcaster.GetInstance().AddOnlineUser(chatClient);
+            //Broadcaster.GetInstance().AddOnlineUser(chatClient);
             waitForMessages(chatClient);
         }
 
         private void waitForMessages(ChatClient chatClient) {
             Socket socket = chatClient.Socket;
             byte[] socketbuffer = new byte[1024];
-            while (true) {
-                int bytesRecieved = socket.Receive(socketbuffer, 0, socketbuffer.Length, SocketFlags.None);
-                if (bytesRecieved == 0) {
-                    Console.WriteLine("Клиент ушёл и зашатдаунил порт");
-                    return;
-                }
-                Broadcaster.GetInstance().BroadcastMessageFrom(socket, MessageAnalyserHelper.GetMessagesFromBytes(socketbuffer,bytesRecieved));
-            }
+//            while (true) {
+//            string requestString = reader.ReadLine();
+//
+//                //Broadcaster.GetInstance().BroadcastMessageFrom(socket, MessageAnalyserHelper.GetMessagesFromBytes(socketbuffer,bytesRecieved));
+//            }
 
         }
 
-        private void sendServerResponse(Socket socket, ChatModel.Rrules response) {
-            byte[] outputbuffer = new byte[1];
-            outputbuffer[0] = (byte)response;
-            socket.Send(outputbuffer, 1, SocketFlags.None);
+        private void SendServerResponse(string response) {
+            writer.WriteLine(response);
+            writer.Flush();
         }
 
         private void SendHundreedOfMessages(ChatClient chatClient) {
-            Broadcaster.GetInstance().SendHeundreedMessagesToUser(chatClient);
+            //Broadcaster.GetInstance().SendHeundreedMessagesToUser(chatClient);
         }
 
         private void Disconnect(Socket socket) {
