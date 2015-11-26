@@ -18,15 +18,6 @@ namespace Chat
         delegate void NoArgumentsMethodInvoker();
 
         public MainWindow() {
-            try {
-                Connector.InitializeConnector();
-            }
-            catch (Exception e) {
-                MessageBox.Show(e.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                this.Close();
-                return;
-            }
-            Connector.Instance.AddObserver(this); 
             InitializeComponent();
         }
 
@@ -37,10 +28,33 @@ namespace Chat
             Connector.Instance.Send(TbCurrentMessage.Text);
             TbCurrentMessage.Text = "";
         }
+
         private void OnAuthorize(object sender, RoutedEventArgs e) {
+            try {
+                Connector.InitializeConnector();
+            }
+            catch (Exception exception) {
+                MessageBox.Show(exception.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                if (Connector.Instance != null) {
+                    Connector.Instance.Dispose();
+                }
+                return;
+            }
+            Connector.Instance.AddObserver(this);
             Connector.Instance.Authorize(TbLogin.Text,PbPassword.Password);
         }
         private void OnRegister(object sender, RoutedEventArgs e) {
+            try {
+                Connector.InitializeConnector();
+            }
+            catch (Exception exception) {
+                MessageBox.Show(exception.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                if (Connector.Instance != null) {
+                    Connector.Instance.Dispose();
+                }
+                return;
+            }
+            Connector.Instance.AddObserver(this);
             //Если пароль хешровать, то узнать его длину уже не получится. Посылать в открытом виде и проверять на сервере?
             if (PbPassword.Password.Length < 3) {
                 MessageBox.Show("Пароль должен быть не менее 3-х символов", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -50,7 +64,9 @@ namespace Chat
         }
 
         private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e) {
-           Connector.Instance.Disconnect();
+            if (Connector.Instance != null) {
+                Connector.Instance.Dispose();
+            }
         }
 
         #endregion
@@ -81,6 +97,10 @@ namespace Chat
             }
             MessageBox.Show(description, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             SetUnauthorizedState();
+            if (Connector.Instance != null) {
+                Connector.Instance.Dispose();
+            }
+
 
         }
 
