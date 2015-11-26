@@ -9,9 +9,6 @@ namespace ChatModel {
         public static ServerUser GetServerUserFromBytes(byte[] buffer,int length) {
             int hasedPasswordSize = EncodyngAndCryptoInformation.hashingAlgorytm.HashSize/8;
             string username=EncodyngAndCryptoInformation.encoding.GetString(buffer, hasedPasswordSize, length - (hasedPasswordSize+1));
-            if (username.Length < 3) {
-                throw new Exception("Моловато будет");
-            }
             byte[] hashedPassword = new byte[hasedPasswordSize];
             Array.Copy(buffer,1,hashedPassword,0,hasedPasswordSize);
             //buffer.CopyTo(hashedPassword,1);
