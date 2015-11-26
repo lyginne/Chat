@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ChatClient;
 using ChatServer.DataBase;
+using ChatServer.NetworkExchange;
 
 namespace ChatServer {
     class Program {
@@ -13,7 +14,9 @@ namespace ChatServer {
             try {
                 XMLSettings xmlSettings = new XMLSettings("settings.xml");
                 DataBaseManager.InitializeDatabaseManager();
+                Broadcaster.Initialize();
                 Server server = new Server(xmlSettings.IpAddress, xmlSettings.Port);
+
             }
             catch (Exception e) {
                 Console.WriteLine("Невозможно запустить сервер" + e.Message);

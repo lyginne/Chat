@@ -11,7 +11,7 @@ namespace ChatServer.NetworkExchange {
         private static Broadcaster _broadcaster;
         private static List<ChatClient> usersOnline;
 
-        public void Initialize() {
+        public static void Initialize() {
             _broadcaster = new Broadcaster();
         }
 
@@ -23,23 +23,43 @@ namespace ChatServer.NetworkExchange {
             usersOnline = new List<ChatClient>();
         }
 
-        private void AddOnlineUser(ChatClient chatClient) {
+        public void AddOnlineUser(ChatClient chatClient) {
             lock (this) {
                 usersOnline.Add(chatClient);
                 BroadcastNewUsersList();
             }
             
         }
+        public void RemoveOnlineUser(ChatClient chatClient) {
+            lock (this) {
+                usersOnline.Add(chatClient);
+                BroadcastNewUsersList();
+            }
 
+        }
+
+        ~Broadcaster() {
+            ;
+            ;
+            ;
+        }
         private void BroadcastNewUsersList() {
             
         }
 
-        public void BroadcastMessageFrom(User Sender, string message) {
+        public void BroadcastMessageFrom(User sender, string message) {
             
         }
         public void BroadcastMessageFrom(Socket Sender, string message) {
-
+            lock (this) {
+                var firstOrDefault = usersOnline.FirstOrDefault(x => x.Socket.Equals(Sender));
+                if (firstOrDefault != null) {
+                    String SendingString = firstOrDefault.User.Username + message;
+                }
+                else {
+                    throw new Exception("Юзер удален, почему он вообще что-то шлет?");
+                }
+            }
         }
         public void BroadcastMessageFrom(ChatClient Sender, string message) {
 

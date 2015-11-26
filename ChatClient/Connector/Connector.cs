@@ -116,7 +116,7 @@ namespace ChatClient.Connector {
                 _socket.Send(sendbuffer, sendbuffer.Length, SocketFlags.None);
                 _socket.Receive(inputbuffer, 0, 1, SocketFlags.None);
             }
-            catch {
+            catch (Exception e) {
                 NotifyObserversErrorOcured("Ошибка подключения, невозможно зарегистрироваться");
                 Disconnect();
                 return;

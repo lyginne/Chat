@@ -12,7 +12,7 @@ namespace ChatClient {
             var doc = new XmlDocument();
             {
                 doc.Load(filePath);
-                XmlNodeList mainNode = doc.SelectNodes("serversettings");
+                XmlNodeList mainNode = doc.SelectNodes("settings");
                 if (mainNode.Count != 1) {
                     throw new XmlException("Кривая структура XML");
                 }
