@@ -41,7 +41,28 @@ namespace ChatServer.NetworkExchange {
         }
 
         private void BroadcastNewUsersList() {
-            
+            lock (this) {
+                string message = "";
+                usersOnline.ForEach(x => message += x.User.Username + "\r\n");
+
+                byte[] outputBuffer = MessageBuilderHelper.GetBytesToUsersListSendRequest(message);
+                foreach (var user in usersOnline) {
+                    user.Socket.Send(outputBuffer, outputBuffer.Length, SocketFlags.None);
+                }
+            }
+
+
+        }
+
+        public void SendHeundreedMessagesToUser(ChatClient chatClient) {
+            lock (this) {
+                string messages = "";
+#warning Foreach не катит, переделать на for с удалением отказника;
+                foreach (var message in hundreedMessages) {
+                    byte[] outputBuffer = MessageBuilderHelper.GetBytesToMessageSendRequest(message);
+                    chatClient.Socket.Send(outputBuffer, outputBuffer.Length, SocketFlags.None);
+                }
+            }
         }
 
         public void BroadcastMessageFrom(Socket Sender, string message) {
@@ -49,14 +70,16 @@ namespace ChatServer.NetworkExchange {
                 String sendingString="";
                 var firstOrDefault = usersOnline.FirstOrDefault(x => x.Socket.Equals(Sender));
                 if (firstOrDefault != null) {
-                    sendingString = $"{firstOrDefault.User.Username}: {message}";
+                    sendingString = $"{firstOrDefault.User.Username}: {message}" + "\r\n";
                     hundreedMessages.Enqueue(sendingString);
                 }
                 else {
                     throw new Exception("Юзер удален, почему он вообще что-то шлет?");
                 }
+                byte[] outputBuffer = MessageBuilderHelper.GetBytesToMessageSendRequest(sendingString);
+#warning Foreach не катит, переделать на for с удалением отказника;
                 foreach (var user in usersOnline) {
-                    byte[] outputBuffer = MessageBuilderHelper.GetBytesToMessageSendRequest(sendingString);
+                    
                     user.Socket.Send(outputBuffer, outputBuffer.Length,SocketFlags.None);
                 }
             }
