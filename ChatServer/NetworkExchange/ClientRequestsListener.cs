@@ -10,9 +10,23 @@ using ChatServer.NetworkExchange;
 namespace ChatServer {
     class ClientRequestsListener {
 
-    public ClientRequestsListener(Socket socket) {
+        public ClientRequestsListener(Socket socket) {
             byte[] socketbuffer = new byte[1024];
-            int bytesRecieved = socket.Receive(socketbuffer, 0,socketbuffer.Length, SocketFlags.None);
+            int bytesRecieved=0;
+            try {
+                bytesRecieved = socket.Receive(socketbuffer, 0, socketbuffer.Length, SocketFlags.None);
+                if (bytesRecieved == 0) {
+                    Console.WriteLine("Клиент шлет ноль байт, видимо, передумал");
+                    Disconnect(socket);
+                    return;
+                }
+            }
+            catch (Exception e) {
+                Console.WriteLine("Клиент ничего не передает, видимо, упал");
+                Disconnect(socket);
+                return;
+            }
+
             if (socketbuffer[0] == (byte)ChatModel.Rrules.Autorization) {
                 OnAutorizeRequest(socketbuffer,bytesRecieved,socket);
             }
@@ -28,6 +42,11 @@ namespace ChatServer {
 
         private void OnAutorizeRequest(byte[] socketbuffer, int bytesRecieved, Socket socket) {
             ServerUser serverUser = MessageAnalyserHelper.GetServerUserFromBytes(socketbuffer, bytesRecieved);
+            if (serverUser.Username.Length < 3) {
+                sendServerResponse(socket, ChatModel.Rrules.IncorrectLoginOrPassword);
+                Disconnect(socket);
+                return;
+            }
             if (DataBase.DataBaseManager.GetInstance().VerifyUser(serverUser)) {
                 Authorize(new ChatClient(serverUser, socket));
             }
@@ -40,11 +59,17 @@ namespace ChatServer {
 
         private void OnRegisterRequest(byte[] socketbuffer, int bytesRecieved, Socket socket) {
             ServerUser serverUser = MessageAnalyserHelper.GetServerUserFromBytes(socketbuffer, bytesRecieved);
+            if (serverUser.Username.Length < 3) {
+                sendServerResponse(socket, ChatModel.Rrules.IncorrectLoginOrPassword);
+                Disconnect(socket);
+                return;
+            }
             if (!DataBase.DataBaseManager.GetInstance().CheckUserExistance(serverUser)) {
+                DataBase.DataBaseManager.GetInstance().AddUserToDataBase(serverUser);
                 Authorize(new ChatClient(serverUser, socket));
             }
             else {
-                sendServerResponse(socket, ChatModel.Rrules.IncorrectLoginOrPassword);
+                sendServerResponse(socket, ChatModel.Rrules.UserExists);
                 Disconnect(socket);
             }
         }
@@ -72,13 +97,12 @@ namespace ChatServer {
 
         private void sendServerResponse(Socket socket, ChatModel.Rrules response) {
             byte[] outputbuffer = new byte[1];
-            outputbuffer[0] = (byte)ChatModel.Rrules.Ok;
+            outputbuffer[0] = (byte)response;
             socket.Send(outputbuffer, 1, SocketFlags.None);
         }
 
         private void SendHundreedOfMessages(ChatClient chatClient) {
-
-
+            Broadcaster.GetInstance().SendHeundreedMessagesToUser(chatClient);
         }
 
         private void Disconnect(Socket socket) {
