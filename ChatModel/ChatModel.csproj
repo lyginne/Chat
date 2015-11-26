@@ -40,7 +40,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="ClientRequestEnum.cs" />
+    <Compile Include="EncodyngAndCryptoInformation.cs" />
     <Compile Include="MessageAnalyserHelper.cs" />
     <Compile Include="MessageBuilderHelper.cs" />
     <Compile Include="ServerUser.cs" />
