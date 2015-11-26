@@ -39,7 +39,10 @@ namespace ChatServer.DataBase {
                 userMatch = Convert.ToInt32(command.ExecuteScalar());
                 dataBaseConnection.Close();
             }
-            if (userMatch > 0) {
+            if (userMatch == 1) {
+                return true;
+            }
+            if (userMatch > 1) {
                 //Строго говоря, больше одного совпадения - кривая база, но ладно
                 return false;
             }
