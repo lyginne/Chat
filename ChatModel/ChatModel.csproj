@@ -40,17 +40,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AbstractConnector.cs" />
-    <Compile Include="ClientRequestEnum.cs" />
-    <Compile Include="EncodyngAndCryptoInformation.cs" />
-    <Compile Include="MessageAnalyserHelper.cs" />
-    <Compile Include="MessageBuilderHelper.cs" />
-    <Compile Include="ServerUser.cs" />
-    <Compile Include="User.cs" />
+    <Compile Include="Interraction\AbstractConnector.cs" />
+    <Compile Include="Interraction\Message\Headers\ClientMesageHeader.cs" />
+    <Compile Include="Interraction\Message\Headers\ServerMesageHeader.cs" />
+    <Compile Include="Interraction\EncodyngAndCrypto.cs" />
+    <Compile Include="Interraction\Message\MessageAnalyserHelper.cs" />
+    <Compile Include="DataModel\User.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RegistrationResults.cs" />
-    <Compile Include="XMLSettings.cs" />
+    <Compile Include="XMLAnalyzer\XMLSettings.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -1,34 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using Chat;
 using ChatClient.Connector.Interfaces;
 using ChatModel;
+using ChatModel.Interraction;
 
 namespace ChatClient.Connector {
     //Синглтон для общения с сервером
-    class Connector :  IConnectorObservable, IDisposable {
+    class Connector : AbstractConnector,  IConnectorObservable, IDisposable {
 
         private static Connector _connector;
-        private Socket _socket;
         private readonly XMLSettings _xmlSettings;
-        private bool _connected;
-        private const string settingPath="settings.xml";
-        private NetworkStream networkStream;
-        private StreamReader reader;
-        private StreamWriter writer;
+        private bool _disposing;
+        private const string SettingPath="settings.xml";
 
-        public static Connector Instance {
-            get { return _connector; }
+        public static Connector GetInstance() {
+            return _connector;
         }
+
         #region Connstructors and Initializers
+
         public static Connector InitializeConnector() {
-            _connector?.Disconnect();
-            _connector = new Connector(settingPath);
+            _connector?.Dispose();
+            _connector = new Connector(SettingPath);
             
             return _connector;
         }
@@ -39,32 +35,17 @@ namespace ChatClient.Connector {
         }
         #endregion
 
-        #region Destructors
-        public void Disconnect() {
-            lock (this) {
-                if (_socket != null) {
-                    _connected = false;
-                    if (_socket.Connected) {
-                        _socket.Shutdown(SocketShutdown.Both);
-                        _socket.Close();
-                        _socket = null;
-                    }
-                }
-            }
-        }
-        public void Dispose() {
+        public new void Dispose() {
+            base.Dispose();
             _connector = null;
-            Disconnect();
         }
-        #endregion
 
         public void Connect() {
-            _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            _socket.Connect(_xmlSettings.IpAddress, _xmlSettings.Port);
-            networkStream = new NetworkStream(_socket);
-            reader = new StreamReader(networkStream, Encoding.UTF8);
-            writer = new StreamWriter(networkStream, Encoding.UTF8);
+            Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            Socket.Connect(_xmlSettings.IpAddress, _xmlSettings.Port);
+            base.Connect(Socket);
         }
+
 
         #region ButtonRegistration and Autorisation
 
@@ -77,10 +58,10 @@ namespace ChatClient.Connector {
                 return;
             }
 
-            writer.WriteLine(String.Format("0|{0}, {1}", Convert.ToBase64String(EncodyngAndCryptoInformation.hashingAlgorytm.ComputeHash(Encoding.UTF8.GetBytes(password))), username));
-            writer.Flush();
-            string response = reader.ReadLine();
-            AnalyzeUserPasswordRequestResult(response[0]);
+            Writer.WriteLine("{0}{1}{2}", ClientMesageHeader.Authorize, Convert.ToBase64String(EncodyngAndCrypto.hashingAlgorytm.ComputeHash(Encoding.UTF8.GetBytes(password))), username);
+            Writer.Flush();
+            string response = Reader.ReadLine();
+            AnalyzeUserPasswordRequestResult(response);
 
         }
 
@@ -92,29 +73,29 @@ namespace ChatClient.Connector {
                 NotifyObserversErrorOcured("Невозможно подключиться к серверу");
                 return;
             }
-            writer.WriteLine(String.Format("1|{0}, {1}", Convert.ToBase64String(EncodyngAndCryptoInformation.hashingAlgorytm.ComputeHash(Encoding.UTF8.GetBytes(password))), username));
-            writer.Flush();
-            string response = reader.ReadLine();
-            AnalyzeUserPasswordRequestResult(response[0]);
+            Writer.WriteLine("{0}{1}{2}", ClientMesageHeader.Register, Convert.ToBase64String(EncodyngAndCrypto.hashingAlgorytm.ComputeHash(Encoding.UTF8.GetBytes(password))), username);
+            Writer.Flush();
+            string response = Reader.ReadLine();
+            AnalyzeUserPasswordRequestResult(response);
 
         }
 
-        private void AnalyzeUserPasswordRequestResult(char result) {
-            if (result == '0') {
+        private void AnalyzeUserPasswordRequestResult(string result) {
+            if (result.Equals(ServerMesageHeader.OK)) {
                 NotifyObserversUserPasswordOperationSucced();
                 StartSession();
             }
-            else if (result == '2') {
+            else if (result.Equals(ServerMesageHeader.UserExist)) {
                 NotifyObserversErrorOcured("Юзер существует");
-                Disconnect();
+                Dispose();
             }
-            else if (result == '1') {
+            else if (result.Equals(ServerMesageHeader.UsernameOrPasswordIncorrect)) {
                 NotifyObserversErrorOcured("Некорректное имя пользователя или пароль");
-                Disconnect();
+                Dispose();
             }
             else {
                 NotifyObserversErrorOcured("Неожиданная ошибка");
-                Disconnect();
+                Dispose();
             }
         }
 
@@ -123,20 +104,35 @@ namespace ChatClient.Connector {
         #region Session
 
         private void StartSession() {
-            _connected = true;
+            _disposing = true;
            new Thread(Session).Start();
         }
 
         private void Session() {
             while (true) {
-                string requestString = reader.ReadLine();
-                if (requestString.Substring(0,2).Equals("3|")) {
+                string requestString=null;
+                try {
+                    requestString = Reader.ReadLine();
+                }
+                catch (Exception) {
+                    if (_disposing) {
+                        return;
+                    }
+                    NotifyObserversErrorOcured("Нет соединения с сервером");
+                    
+                }
+                if (requestString == null) {
+                    NotifyObserversErrorOcured("Сервер разорвал подключение");
+                    return;
+                }
+                
+                if (requestString.Substring(0,2).Equals(ServerMesageHeader.Message)) {
                     NotifyObserversMessageRecieved(requestString.Substring(2)+"\r\n");
                 }
-                else if (requestString.Substring(0, 2).Equals("4|")) {
+                else if (requestString.Substring(0, 2).Equals(ServerMesageHeader.NewUser)) {
                     NotifyObserversNewUserJoined(requestString.Substring(2));
                 }
-                else if (requestString.Substring(0, 2).Equals("5|")) {
+                else if (requestString.Substring(0, 2).Equals(ServerMesageHeader.UserQuit)) {
                     NotifyObserversUserQuit(requestString.Substring(2));
                 }
             }
@@ -144,12 +140,12 @@ namespace ChatClient.Connector {
 
         public void Send(string message) {
             try {
-                writer.WriteLine("3|" + message);
-                writer.Flush();
+                Writer.WriteLine("{0}{1}", ClientMesageHeader.Message, message);
+                Writer.Flush();
             }
             catch {
                 NotifyObserversErrorOcured("Сервер не отвечает");
-                Disconnect();
+                Dispose();
             }
             
         }

@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ChatServer.NetworkExchange;
 
 namespace ChatServer {
     class Server {
@@ -19,7 +20,7 @@ namespace ChatServer {
         }
 
         private void AcceptSocket(Object socket) {
-            new ClientRequestsListener((Socket) socket);
+            new ClientConnector((Socket) socket);
 
         }
     }

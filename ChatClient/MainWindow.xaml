@@ -5,27 +5,28 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Closing="OnWindowClosing"
-        Title="MainWindow" Height="350" Width="525">
+        Title="MainWindow" MinWidth="540" MinHeight="375" Width="540" Height="300">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition/>                
-            <ColumnDefinition/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>                
+            <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
-        <TextBox Name="TbLogin" Grid.Column="0" Grid.Row="0" MaxLength="10" IsEnabled="True"/>
-        <PasswordBox Name="PbPassword" Grid.Column="1" Grid.Row="0" MaxLength="10"/>
-        <TextBox IsReadOnly="True" Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" Name="TbChatMessages" TextWrapping="Wrap"/>
-        <TextBox Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" Name="TbCurrentMessage" MaxLength="500" IsEnabled="False" TextWrapping="Wrap"/>
-        <Button Name="ButtonAuthorization" Grid.Column="0" Grid.Row="1" Content="Authorize" Click="OnAuthorize"/>
-        <Button Name="ButtonRegistration" Grid.Column="1" Grid.Row="1" Content="Register" Click="OnRegister"/>
-        <Button Name="ButtonSend" Grid.Column="0" Grid.Row="4" Content="ButtonSend" Grid.ColumnSpan="1" Click="OnSend" IsEnabled="False"/>
-        <TextBox Grid.Column="2" Grid.Row="0" Grid.RowSpan="4" Name="TbUsersOnline" IsReadOnly="True"/>
+        <TextBox Name="TbLogin" Grid.Column="0" Grid.Row="0" MaxLength="10" IsEnabled="True" Margin="10" />
+        <PasswordBox Name="PbPassword" Grid.Column="1" Grid.Row="0" MaxLength="10" Margin="10" />
+        <Button Name="ButtonAuthorization" Grid.Column="0" Grid.Row="1" Content="Authorize" Click="OnAuthorize" Height="50" Width="150" Margin="10"/>
+        <Button Name="ButtonRegistration" Grid.Column="1" Grid.Row="1" Content="Register" Click="OnRegister" Height="50" Width="150" Margin="10"/>
+        <TextBox IsReadOnly="True" Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" Name="TbChatMessages" TextWrapping="Wrap" Margin="10,10,10,0"/>
+        <TextBox Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" Name="TbCurrentMessage" MaxLength="500" IsEnabled="False" TextWrapping="Wrap" Margin="10,0,10,10"/>
+        
+        <Button Name="ButtonSend" Grid.Column="0" Grid.Row="4" Content="Send" Grid.ColumnSpan="1" Click="OnSend" IsEnabled="False" Height="50" Width="150" Margin="10"/>
+        <TextBox Grid.Column="2" Grid.Row="0" Grid.RowSpan="4" Name="TbUsersOnline" IsReadOnly="True" Margin="10" Width="150"/>
     </Grid>
 </Window>

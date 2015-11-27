@@ -5,6 +5,7 @@ using System.Windows;
 using Chat.Annotations;
 using ChatClient;
 using ChatClient.Connector;
+using ChatClient.Connector.Interfaces;
 
 namespace Chat
 {
@@ -25,7 +26,7 @@ namespace Chat
         #region Events
 
         private void OnSend(object sender, RoutedEventArgs e) {
-            Connector.Instance.Send(TbCurrentMessage.Text);
+            Connector.GetInstance().Send(TbCurrentMessage.Text);
             TbCurrentMessage.Text = "";
         }
 
@@ -35,13 +36,13 @@ namespace Chat
             }
             catch (Exception exception) {
                 MessageBox.Show(exception.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                if (Connector.Instance != null) {
-                    Connector.Instance.Dispose();
+                if (Connector.GetInstance() != null) {
+                    Connector.GetInstance().Dispose();
                 }
                 return;
             }
-            Connector.Instance.AddObserver(this);
-            Connector.Instance.Authorize(TbLogin.Text,PbPassword.Password);
+            Connector.GetInstance().AddObserver(this);
+            Connector.GetInstance().Authorize(TbLogin.Text,PbPassword.Password);
         }
         private void OnRegister(object sender, RoutedEventArgs e) {
             try {
@@ -49,23 +50,23 @@ namespace Chat
             }
             catch (Exception exception) {
                 MessageBox.Show(exception.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                if (Connector.Instance != null) {
-                    Connector.Instance.Dispose();
+                if (Connector.GetInstance() != null) {
+                    Connector.GetInstance().Dispose();
                 }
                 return;
             }
-            Connector.Instance.AddObserver(this);
+            Connector.GetInstance().AddObserver(this);
             //Если пароль хешровать, то узнать его длину уже не получится. Посылать в открытом виде и проверять на сервере?
             if (PbPassword.Password.Length < 3) {
                 MessageBox.Show("Пароль должен быть не менее 3-х символов", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-            Connector.Instance.Register(TbLogin.Text, PbPassword.Password);
+            Connector.GetInstance().Register(TbLogin.Text, PbPassword.Password);
         }
 
-        private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e) {
-            if (Connector.Instance != null) {
-                Connector.Instance.Dispose();
+        private void OnWindowClosing(object sender, CancelEventArgs e) {
+            if (Connector.GetInstance() != null) {
+                Connector.GetInstance().Dispose();
             }
         }
 
@@ -97,8 +98,8 @@ namespace Chat
             }
             MessageBox.Show(description, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             SetUnauthorizedState();
-            if (Connector.Instance != null) {
-                Connector.Instance.Dispose();
+            if (Connector.GetInstance() != null) {
+                Connector.GetInstance().Dispose();
             }
 
 

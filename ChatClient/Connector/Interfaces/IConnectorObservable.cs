@@ -1,6 +1,4 @@
-﻿using Chat;
-
-namespace ChatClient.Connector.Interfaces {
+﻿namespace ChatClient.Connector.Interfaces {
     interface IConnectorObservable {
         void AddObserver(IConnectorObserver observer);
         void RemoveObserver(IConnectorObserver observer);

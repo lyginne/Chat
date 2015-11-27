@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-using ChatClient;
+using ChatModel;
 using ChatServer.DataBase;
-using ChatServer.NetworkExchange;
 using ChatServer.NetworkExchange.Broadcaster;
 
 namespace ChatServer {

@@ -46,13 +46,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ChatClient.cs" />
     <Compile Include="LimitedQueue.cs" />
     <Compile Include="NetworkExchange\Broadcaster\Broadcaster.cs" />
     <Compile Include="DataBase\DataBaseManager.cs" />
     <Compile Include="NetworkExchange\Broadcaster\IBroadcasterClient.cs" />
     <Compile Include="NetworkExchange\Broadcaster\IBroadcasterObservable.cs" />
-    <Compile Include="NetworkExchange\ClientRequestsListener.cs" />
+    <Compile Include="NetworkExchange\ClientConnector.cs" />
     <Compile Include="NetworkExchange\Server.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

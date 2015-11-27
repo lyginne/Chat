@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Net;
 using System.Xml;
 
-namespace ChatClient {
+namespace ChatModel {
     public class XMLSettings {
         public readonly IPAddress IpAddress ;
         public readonly int Port;
@@ -13,6 +12,9 @@ namespace ChatClient {
             {
                 doc.Load(filePath);
                 XmlNodeList mainNode = doc.SelectNodes("settings");
+                if (mainNode == null) {
+                    throw new XmlException("Кривая структура XML");
+                }
                 if (mainNode.Count != 1) {
                     throw new XmlException("Кривая структура XML");
                 }

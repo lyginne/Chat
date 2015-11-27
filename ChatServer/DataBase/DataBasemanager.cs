@@ -2,6 +2,7 @@
 using System.Data.SQLite;
 using System.IO;
 using ChatModel;
+using ChatModel.DataModel;
 
 namespace ChatServer.DataBase {
     //Синглтон для общения с базой. По-хорошему ему надо свой поток, очередь на запись и расписание, но ладно
@@ -14,7 +15,7 @@ namespace ChatServer.DataBase {
             return _dataBaseManager;
         }
 
-        public void AddUserToDataBase(ServerUser user) {
+        public void AddUserToDataBase(User user) {
             lock (dataBaseConnection) {
                 dataBaseConnection.Open();
                 string sql = $"INSERT INTO USERS ( USERNAME, PASSWORDHASHBASE64 ) " +
@@ -27,7 +28,7 @@ namespace ChatServer.DataBase {
 
         }
 
-        public bool VerifyUser(ServerUser user) {
+        public bool VerifyUser(User user) {
             int userMatch;
             lock (dataBaseConnection) {
                 dataBaseConnection.Open();
@@ -49,7 +50,7 @@ namespace ChatServer.DataBase {
             return false;
         }
 
-        public bool CheckUserExistance(ServerUser user) {
+        public bool CheckUserExistance(User user) {
             int userMatch;
             lock (dataBaseConnection) {
                 dataBaseConnection.Open();

@@ -7,9 +7,7 @@ using ChatModel;
 namespace ChatServer.NetworkExchange.Broadcaster {
     class Broadcaster : IBroadcasterObservable {
         private static Broadcaster _broadcaster;
-        private static List<ChatClient> _usersOnline;
         private static LimitedQueue<String> _hundreedMessages; 
-        private List<IBroadcasterClient> Observers { get; }
         private static List<IBroadcasterClient> _clientsOnline;
 
         public static void Initialize() {
@@ -21,7 +19,6 @@ namespace ChatServer.NetworkExchange.Broadcaster {
         }
 
         private Broadcaster() {
-            _usersOnline = new List<ChatClient>();
             _clientsOnline =new List<IBroadcasterClient>();
             _hundreedMessages = new LimitedQueue<string>(100);
         }
