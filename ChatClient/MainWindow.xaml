@@ -6,6 +6,39 @@
         mc:Ignorable="d"
         Closing="OnWindowClosing"
         Title="MainWindow" MinWidth="540" MinHeight="375" Width="540" Height="300">
+    <Window.Resources>
+        <ResourceDictionary>
+            <Style x:Key="placeHolder" TargetType="{x:Type TextBox}" BasedOn="{StaticResource {x:Type TextBox}}">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type TextBox}">
+                            <Grid>
+                                <TextBox Text="{Binding Path=Text,
+                                                RelativeSource={RelativeSource TemplatedParent}, 
+                                                Mode=TwoWay,
+                                                UpdateSourceTrigger=PropertyChanged}"
+                                 x:Name="textSource" 
+                                 Background="Transparent" 
+                                 Panel.ZIndex="2" />
+                                <TextBox Text="{TemplateBinding Tag}" Background="{TemplateBinding Background}" Panel.ZIndex="1">
+                                    <TextBox.Style>
+                                        <Style TargetType="{x:Type TextBox}">
+                                            <Setter Property="Foreground" Value="Transparent"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Path=Text, Source={x:Reference textSource}}" Value="">
+                                                    <Setter Property="Foreground" Value="LightGray"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBox.Style>
+                                </TextBox>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="50"/>
@@ -19,14 +52,14 @@
             <ColumnDefinition Width="*"/>                
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
-        <TextBox Name="TbLogin" Grid.Column="0" Grid.Row="0" MaxLength="10" IsEnabled="True" Margin="10" />
+        <TextBox Style="{StaticResource placeHolder}" Tag="Login" Name="TbLogin" Grid.Column="0" Grid.Row="0" MaxLength="10" IsEnabled="True" Margin="10" />
         <PasswordBox Name="PbPassword" Grid.Column="1" Grid.Row="0" MaxLength="10" Margin="10" />
         <Button Name="ButtonAuthorization" Grid.Column="0" Grid.Row="1" Content="Authorize" Click="OnAuthorize" Height="50" Width="150" Margin="10"/>
         <Button Name="ButtonRegistration" Grid.Column="1" Grid.Row="1" Content="Register" Click="OnRegister" Height="50" Width="150" Margin="10"/>
-        <TextBox IsReadOnly="True" Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" Name="TbChatMessages" TextWrapping="Wrap" Margin="10,10,10,0"/>
+        <TextBox Style="{StaticResource placeHolder}" Tag="Chat Messages" IsReadOnly="True" Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" Name="TbChatMessages" TextWrapping="Wrap" Margin="10,10,10,0"/>
         <TextBox Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" Name="TbCurrentMessage" MaxLength="500" IsEnabled="False" TextWrapping="Wrap" Margin="10,0,10,10"/>
         
         <Button Name="ButtonSend" Grid.Column="0" Grid.Row="4" Content="Send" Grid.ColumnSpan="1" Click="OnSend" IsEnabled="False" Height="50" Width="150" Margin="10"/>
-        <TextBox Grid.Column="2" Grid.Row="0" Grid.RowSpan="4" Name="TbUsersOnline" IsReadOnly="True" Margin="10" Width="150"/>
+        <TextBox Style="{StaticResource placeHolder}" Tag="Chat Users" Grid.Column="2" Grid.Row="0" Grid.RowSpan="4" Name="TbUsersOnline" IsReadOnly="True" Margin="10" Width="150"/>
     </Grid>
 </Window>

@@ -9,7 +9,7 @@ namespace ChatModel.Interraction {
         protected NetworkStream NetworkStream;
         protected StreamWriter Writer;
         protected StreamReader Reader;
-        private bool _disposing;
+        protected bool Disposing;
 
         protected void Connect(Socket socket) {
             Socket = socket;
@@ -19,13 +19,13 @@ namespace ChatModel.Interraction {
         }
 
         public void Dispose() {
-            if (_disposing)
+            if (Disposing)
                 return;
             Disconnect();
         }
 
         private void Disconnect() {
-            _disposing = true;
+            Disposing = true;
 
             Reader?.Close();
             Writer?.Close();

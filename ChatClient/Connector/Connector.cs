@@ -13,7 +13,6 @@ namespace ChatClient.Connector {
 
         private static Connector _connector;
         private readonly XMLSettings _xmlSettings;
-        private bool _disposing;
         private const string SettingPath="settings.xml";
 
         public static Connector GetInstance() {
@@ -104,7 +103,6 @@ namespace ChatClient.Connector {
         #region Session
 
         private void StartSession() {
-            _disposing = true;
            new Thread(Session).Start();
         }
 
@@ -115,14 +113,19 @@ namespace ChatClient.Connector {
                     requestString = Reader.ReadLine();
                 }
                 catch (Exception) {
-                    if (_disposing) {
+                    if (Disposing) {
                         return;
                     }
                     NotifyObserversErrorOcured("Нет соединения с сервером");
-                    
+                    Dispose();
+
+                }
+                if (Disposing) {
+                    return;
                 }
                 if (requestString == null) {
                     NotifyObserversErrorOcured("Сервер разорвал подключение");
+                    Dispose();
                     return;
                 }
                 
