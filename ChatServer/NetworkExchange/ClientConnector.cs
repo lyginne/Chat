@@ -12,8 +12,20 @@ namespace ChatServer.NetworkExchange  {
 
         public ClientConnector(Socket socket) {
             Socket = socket;
-            Connect(Socket);
-            string requestString = Reader.ReadLine();
+            try {
+                Connect(Socket);
+            }
+            catch (Exception e) {
+                Console.WriteLine("Не цепануться к сокету" + e.ToString());
+            }
+            string requestString=null;
+            try {
+                requestString = Reader.ReadLine();
+            }
+            catch (Exception e) {
+                Console.WriteLine("Первое же чтение после ацепта упало" + e.ToString());
+            }
+            
             if (requestString==null) {
                 Console.WriteLine("Клиент отвалился");
                 Dispose();
