@@ -2,12 +2,12 @@
 using System.Net;
 using System.Xml;
 
-namespace ChatModel {
-    public class XMLSettings {
+namespace ChatModel.XMLAnalyzer {
+    public class XmlSettings {
         public readonly IPAddress IpAddress ;
         public readonly int Port;
 
-        public XMLSettings(string filePath) {
+        public XmlSettings(string filePath) {
             var doc = new XmlDocument();
             {
                 doc.Load(filePath);

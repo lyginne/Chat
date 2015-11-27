@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Sockets;
-using ChatModel;
 
 namespace ChatServer.NetworkExchange.Broadcaster {
     class Broadcaster : IBroadcasterObservable {

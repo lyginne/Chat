@@ -14,7 +14,7 @@ namespace ChatModel.Interraction {
         protected void Connect(Socket socket) {
             Socket = socket;
             NetworkStream = new NetworkStream(socket);
-            Reader = new StreamReader(NetworkStream, Encoding.UTF8);
+            Reader = new StreamReader(NetworkStream, EncodyngAndCrypto.Encoding);
             Writer = new StreamWriter(NetworkStream, Encoding.UTF8);
         }
 

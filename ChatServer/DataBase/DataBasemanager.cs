@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Data.SQLite;
 using System.IO;
-using ChatModel;
 using ChatModel.DataModel;
 
 namespace ChatServer.DataBase {
@@ -9,20 +8,20 @@ namespace ChatServer.DataBase {
     class DataBaseManager {
         private static DataBaseManager _dataBaseManager;
         private const string DataBasePath = "my.bd";
-        private SQLiteConnection dataBaseConnection;
+        private readonly SQLiteConnection _dataBaseConnection;
         
         public static DataBaseManager GetInstance() {
             return _dataBaseManager;
         }
 
         public void AddUserToDataBase(User user) {
-            lock (dataBaseConnection) {
-                dataBaseConnection.Open();
-                string sql = $"INSERT INTO USERS ( USERNAME, PASSWORDHASHBASE64 ) " +
+            lock (_dataBaseConnection) {
+                _dataBaseConnection.Open();
+                string sql = "INSERT INTO USERS ( USERNAME, PASSWORDHASHBASE64 ) " +
                                 $"VALUES ( '{user.Username}' , '{user.HashedPasswordBase64}' ) ;";
-                SQLiteCommand command = new SQLiteCommand(sql, dataBaseConnection);
+                SQLiteCommand command = new SQLiteCommand(sql, _dataBaseConnection);
                 command.ExecuteNonQuery();
-                dataBaseConnection.Close();
+                _dataBaseConnection.Close();
             }
 
 
@@ -30,15 +29,15 @@ namespace ChatServer.DataBase {
 
         public bool VerifyUser(User user) {
             int userMatch;
-            lock (dataBaseConnection) {
-                dataBaseConnection.Open();
-                string sql = $"SELECT COUNT(*) " +
-                             $"FROM USERS " +
+            lock (_dataBaseConnection) {
+                _dataBaseConnection.Open();
+                string sql = "SELECT COUNT(*) " +
+                             "FROM USERS " +
                              $"WHERE USERNAME = '{user.Username}' " +
                              $"AND PASSWORDHASHBASE64 = '{user.HashedPasswordBase64}' ;";
-                SQLiteCommand command = new SQLiteCommand(sql, dataBaseConnection);
+                SQLiteCommand command = new SQLiteCommand(sql, _dataBaseConnection);
                 userMatch = Convert.ToInt32(command.ExecuteScalar());
-                dataBaseConnection.Close();
+                _dataBaseConnection.Close();
             }
             if (userMatch == 1) {
                 return true;
@@ -52,14 +51,14 @@ namespace ChatServer.DataBase {
 
         public bool CheckUserExistance(User user) {
             int userMatch;
-            lock (dataBaseConnection) {
-                dataBaseConnection.Open();
-                string sql = $"SELECT COUNT(*) " +
-                             $"FROM USERS " +
+            lock (_dataBaseConnection) {
+                _dataBaseConnection.Open();
+                string sql = "SELECT COUNT(*) " +
+                             "FROM USERS " +
                              $"WHERE USERNAME = '{user.Username}' ;";
-                SQLiteCommand command = new SQLiteCommand(sql, dataBaseConnection);
+                SQLiteCommand command = new SQLiteCommand(sql, _dataBaseConnection);
                 userMatch = Convert.ToInt32(command.ExecuteScalar());
-                dataBaseConnection.Close();
+                _dataBaseConnection.Close();
             }
             if (userMatch > 0) {
                 //Строго говоря, больше одного совпадения - кривая база, но ладно
@@ -76,7 +75,7 @@ namespace ChatServer.DataBase {
 
         private DataBaseManager() {
             CreateDataBaseFileIfNotExist(DataBasePath);
-            dataBaseConnection = new SQLiteConnection(String.Format("Data Source={0}", DataBasePath));
+            _dataBaseConnection = new SQLiteConnection($"Data Source={DataBasePath}");
             CreateUsesrsTableIfNotExist();
         }
 
@@ -87,10 +86,10 @@ namespace ChatServer.DataBase {
         }
 
         private void CreateUsesrsTableIfNotExist() {
-            dataBaseConnection.Open();
-            SQLiteCommand command = new SQLiteCommand("CREATE TABLE IF NOT EXISTS USERS( USERNAME VARCHAR(10),PASSWORDHASHBASE64 VARCHAR(44) ) ;", dataBaseConnection);
+            _dataBaseConnection.Open();
+            SQLiteCommand command = new SQLiteCommand("CREATE TABLE IF NOT EXISTS USERS( USERNAME VARCHAR(10),PASSWORDHASHBASE64 VARCHAR(44) ) ;", _dataBaseConnection);
             command.ExecuteNonQuery();
-            dataBaseConnection.Close();
+            _dataBaseConnection.Close();
         }
 
         #endregion

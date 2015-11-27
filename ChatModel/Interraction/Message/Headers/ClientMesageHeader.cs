@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace ChatModel {
+﻿namespace ChatModel.Interraction.Message.Headers {
     public class ClientMesageHeader {
         public const string Register="0|";
         public const string Authorize = "1|";

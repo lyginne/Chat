@@ -4,15 +4,16 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using ChatClient.Connector.Interfaces;
-using ChatModel;
 using ChatModel.Interraction;
+using ChatModel.Interraction.Message.Headers;
+using ChatModel.XMLAnalyzer;
 
 namespace ChatClient.Connector {
     //Синглтон для общения с сервером
     class Connector : AbstractConnector,  IConnectorObservable, IDisposable {
 
         private static Connector _connector;
-        private readonly XMLSettings _xmlSettings;
+        private readonly XmlSettings _xmlSettings;
         private const string SettingPath="settings.xml";
 
         public static Connector GetInstance() {
@@ -30,7 +31,7 @@ namespace ChatClient.Connector {
 
         private Connector(string settingsPath) {
             Observers = new List<IConnectorObserver>();
-            _xmlSettings = new XMLSettings(settingsPath);
+            _xmlSettings = new XmlSettings(settingsPath);
         }
         #endregion
 
@@ -57,7 +58,7 @@ namespace ChatClient.Connector {
                 return;
             }
 
-            Writer.WriteLine("{0}{1}{2}", ClientMesageHeader.Authorize, Convert.ToBase64String(EncodyngAndCrypto.hashingAlgorytm.ComputeHash(Encoding.UTF8.GetBytes(password))), username);
+            Writer.WriteLine("{0}{1}{2}", ClientMesageHeader.Authorize, Convert.ToBase64String(EncodyngAndCrypto.HashingAlgorytm.ComputeHash(Encoding.UTF8.GetBytes(password))), username);
             Writer.Flush();
             string response = Reader.ReadLine();
             AnalyzeUserPasswordRequestResult(response);
@@ -72,7 +73,7 @@ namespace ChatClient.Connector {
                 NotifyObserversErrorOcured("Невозможно подключиться к серверу");
                 return;
             }
-            Writer.WriteLine("{0}{1}{2}", ClientMesageHeader.Register, Convert.ToBase64String(EncodyngAndCrypto.hashingAlgorytm.ComputeHash(Encoding.UTF8.GetBytes(password))), username);
+            Writer.WriteLine("{0}{1}{2}", ClientMesageHeader.Register, Convert.ToBase64String(EncodyngAndCrypto.HashingAlgorytm.ComputeHash(Encoding.UTF8.GetBytes(password))), username);
             Writer.Flush();
             string response = Reader.ReadLine();
             AnalyzeUserPasswordRequestResult(response);
@@ -80,7 +81,7 @@ namespace ChatClient.Connector {
         }
 
         private void AnalyzeUserPasswordRequestResult(string result) {
-            if (result.Equals(ServerMesageHeader.OK)) {
+            if (result.Equals(ServerMesageHeader.Ok)) {
                 NotifyObserversUserPasswordOperationSucced();
                 StartSession();
             }

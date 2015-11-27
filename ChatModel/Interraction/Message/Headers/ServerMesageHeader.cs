@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ChatModel {
+﻿namespace ChatModel.Interraction.Message.Headers {
     public class ServerMesageHeader {
-        public const string OK = "0|";
+        public const string Ok = "0|";
         public const string UsernameOrPasswordIncorrect = "1|";
         public const string UserExist = "2|";
         public const string Message = "3|";

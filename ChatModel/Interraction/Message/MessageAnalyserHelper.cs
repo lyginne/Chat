@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ChatModel.DataModel;
+﻿using ChatModel.DataModel;
 
-namespace ChatModel {
+namespace ChatModel.Interraction.Message {
     public static class MessageAnalyserHelper {
         public static User GetServerUserFromString(string serverUserString) {
             string hashedPasswordBase64 = serverUserString.Substring(2, 44);

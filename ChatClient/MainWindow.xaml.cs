@@ -1,13 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Windows;
-using Chat.Annotations;
-using ChatClient;
-using ChatClient.Connector;
 using ChatClient.Connector.Interfaces;
 
-namespace Chat
+namespace ChatClient
 {
     /// <summary>
     /// Логика взаимодействия для MainWindow.xaml
@@ -26,47 +22,47 @@ namespace Chat
         #region Events
 
         private void OnSend(object sender, RoutedEventArgs e) {
-            Connector.GetInstance().Send(TbCurrentMessage.Text);
+            Connector.Connector.GetInstance().Send(TbCurrentMessage.Text);
             TbCurrentMessage.Text = "";
         }
 
         private void OnAuthorize(object sender, RoutedEventArgs e) {
             try {
-                Connector.InitializeConnector();
+                Connector.Connector.InitializeConnector();
             }
             catch (Exception exception) {
                 MessageBox.Show(exception.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                if (Connector.GetInstance() != null) {
-                    Connector.GetInstance().Dispose();
+                if (Connector.Connector.GetInstance() != null) {
+                    Connector.Connector.GetInstance().Dispose();
                 }
                 return;
             }
-            Connector.GetInstance().AddObserver(this);
-            Connector.GetInstance().Authorize(TbLogin.Text,PbPassword.Password);
+            Connector.Connector.GetInstance().AddObserver(this);
+            Connector.Connector.GetInstance().Authorize(TbLogin.Text,PbPassword.Password);
         }
         private void OnRegister(object sender, RoutedEventArgs e) {
             try {
-                Connector.InitializeConnector();
+                Connector.Connector.InitializeConnector();
             }
             catch (Exception exception) {
                 MessageBox.Show(exception.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                if (Connector.GetInstance() != null) {
-                    Connector.GetInstance().Dispose();
+                if (Connector.Connector.GetInstance() != null) {
+                    Connector.Connector.GetInstance().Dispose();
                 }
                 return;
             }
-            Connector.GetInstance().AddObserver(this);
+            Connector.Connector.GetInstance().AddObserver(this);
             //Если пароль хешровать, то узнать его длину уже не получится. Посылать в открытом виде и проверять на сервере?
             if (PbPassword.Password.Length < 3) {
                 MessageBox.Show("Пароль должен быть не менее 3-х символов", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-            Connector.GetInstance().Register(TbLogin.Text, PbPassword.Password);
+            Connector.Connector.GetInstance().Register(TbLogin.Text, PbPassword.Password);
         }
 
         private void OnWindowClosing(object sender, CancelEventArgs e) {
-            if (Connector.GetInstance() != null) {
-                Connector.GetInstance().Dispose();
+            if (Connector.Connector.GetInstance() != null) {
+                Connector.Connector.GetInstance().Dispose();
             }
         }
 
@@ -98,8 +94,8 @@ namespace Chat
             }
             MessageBox.Show(description, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             SetUnauthorizedState();
-            if (Connector.GetInstance() != null) {
-                Connector.GetInstance().Dispose();
+            if (Connector.Connector.GetInstance() != null) {
+                Connector.Connector.GetInstance().Dispose();
             }
 
 
@@ -120,13 +116,12 @@ namespace Chat
             }
 
             username += "\r\n";
-            int index = TbUsersOnline.Text.IndexOf(username);
+            int index = TbUsersOnline.Text.IndexOf(username, StringComparison.Ordinal);
             if (index < 0) {
+                OnErrorOcurs("Сервер просит удалить юзера, которого и так нет в списке");
                 return;
             }
-            else {
-                TbUsersOnline.Text = TbUsersOnline.Text.Remove(index, username.Length);
-            }
+            TbUsersOnline.Text = TbUsersOnline.Text.Remove(index, username.Length);
         }
 
         private void SetUnauthorizedState() {

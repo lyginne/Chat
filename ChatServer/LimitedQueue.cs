@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ChatServer {
     class LimitedQueue<T> : IEnumerable<T> {
-        private Queue<T> _queue;
-        private int _limit;
+        private readonly Queue<T> _queue;
+        private readonly int _limit;
 
         public LimitedQueue(int limit) {
             _queue = new Queue<T>();

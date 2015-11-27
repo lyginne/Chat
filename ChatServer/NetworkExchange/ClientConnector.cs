@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Net.Sockets;
-using ChatModel;
 using ChatModel.DataModel;
 using ChatModel.Interraction;
+using ChatModel.Interraction.Message;
+using ChatModel.Interraction.Message.Headers;
 using ChatServer.DataBase;
 using ChatServer.NetworkExchange.Broadcaster;
 
@@ -16,14 +17,14 @@ namespace ChatServer.NetworkExchange  {
                 Connect(Socket);
             }
             catch (Exception e) {
-                Console.WriteLine("Не цепануться к сокету" + e.ToString());
+                Console.WriteLine("Не цепануться к сокету" + e);
             }
             string requestString=null;
             try {
                 requestString = Reader.ReadLine();
             }
             catch (Exception e) {
-                Console.WriteLine("Первое же чтение после ацепта упало" + e.ToString());
+                Console.WriteLine("Первое же чтение после ацепта упало" + e);
             }
             
             if (requestString==null) {
@@ -79,10 +80,10 @@ namespace ChatServer.NetworkExchange  {
 
         private void Authorize() {
             try {
-                SendServerResponse(ServerMesageHeader.OK);
+                SendServerResponse(ServerMesageHeader.Ok);
             }
-            catch (Exception) {
-                throw;
+            catch (Exception e) {
+                Console.WriteLine("Клиент отвалился пока пытались послать ему ок " +e);
             }
             Broadcaster.Broadcaster.GetInstance().AddBroadcasterClient(this);
             WaitForMessages();
@@ -94,9 +95,9 @@ namespace ChatServer.NetworkExchange  {
                 try {
                     requestString = Reader.ReadLine();
                 }
-                catch (Exception) {
+                catch (Exception e) {
                     Broadcaster.Broadcaster.GetInstance().RemoveBroadcasterClient(this);
-                    Console.WriteLine("Клиент отвалился");
+                    Console.WriteLine("Клиент отвалился" +e);
                     Dispose();
                     return;
                 }
